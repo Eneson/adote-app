@@ -17,4 +17,4 @@ app.get('/adote', (req, res) => res.json('teste'))
 // app.use('/uploads', express.static('uploads'));
 
 
-app.listen(21071)
+app.listen(80)
