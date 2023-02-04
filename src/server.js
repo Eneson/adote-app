@@ -6,7 +6,7 @@ var http = require('http');
 
 const app = express()
 
-
+const port = process.env.PORT || 3000;
 
 // app.use(express.static('public')); 
 // app.use(cors())
@@ -17,4 +17,4 @@ app.use(errors())
 app.use('/uploads', express.static('uploads'));
 
 
-app.listen(5000)
+app.listen(port)
