@@ -12,6 +12,9 @@ const routes = express.Router()
 
 const multerConfig = require('./config/multer');
 
+
+routes.get('/', InicialController.index)
+
 routes.get('/adote', InicialController.index)
 routes.post('/sessions', SessionController.create)
 routes.post('/doador/update',celebrate({
