@@ -2,16 +2,17 @@ const connection = require('../database/connection')
 
 module.exports = {
   async create(request, response) {
-    try{
-      const { nome, telefone } = request.body
+    const { nome, telefone } = request.body
     
+    try{      
       const doador = await connection('doador')
         .where({
           nome: nome,
           telefone: telefone
         })
-        .select('nome')
+        .select('nome','telefone')
         .first()
+
         if(doador){
           return response.json(doador)
         }else{

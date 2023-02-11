@@ -2,20 +2,38 @@ const connection  = require('../database/connection')
 
 module.exports = {
   async index(request, response) {
-  const doador = await connection('doador').select('*')
+    const doador = await connection('doador').select('*')
 
-  return response.json(doador)
- },
+    return response.json(doador)
+  },
 
   async create(request, response) {
     const { nome, telefone } = request.body
+    
+    const doador = await connection('doador')
+      .where('telefone', telefone)
+      .select('telefone')
+      .first()
+      
+    
+    if(doador){
+      return response.status(400).send({ error: 'Usuario já existe' })
+    }
+    else{
+      const newDoador = await connection('doador')
+      .returning(['nome','telefone'])
+      .insert({
+        nome,
+        telefone,
+      })
+      if(newDoador[0]){
+        return response.status(200).send(newDoador[0])
+      }else{
+        return response.status(500).send({error: 'Erro inesperado'})
+      }
+      
+    }   
 
-    await connection('doador').insert({
-      nome,
-      telefone,
-    })
-
-    return response.json('sucesso')
   },
 
   async delete(request, response) {    

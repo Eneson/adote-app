@@ -27,7 +27,7 @@ routes.get('/doador', DoadorController.index)
 routes.post('/doador', celebrate({
   [Segments.BODY]: Joi.object().keys({
     nome: Joi.string().required(),
-    telefone: Joi.string().required().min(9).max(11),
+    telefone: Joi.string().required().min(8).max(13),
   })
 }), DoadorController.create)
 routes.delete('/doador/:telefone', celebrate({
