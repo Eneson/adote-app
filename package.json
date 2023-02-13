@@ -19,6 +19,7 @@
     "knex": "^2.3.0",
     "multer": "^1.4.5-lts.1",
     "multer-sftp": "^1.1.1",
+    "mysql": "^2.18.1",
     "node-scp": "^0.0.22",
     "node-ssh": "^13.0.1",
     "sqlite3": "^5.1.2",

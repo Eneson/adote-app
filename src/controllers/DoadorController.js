@@ -10,29 +10,44 @@ module.exports = {
   async create(request, response) {
     const { nome, telefone } = request.body
     
-    const doador = await connection('doador')
-      .where('telefone', telefone)
-      .select('telefone')
-      .first()
+    // const doador = await connection('doador')
+    //   .where('telefone', telefone)
+    //   .select('telefone')
+    //   .first()
       
     
-    if(doador){
-      return response.status(400).send({ error: 'Usuario já existe' })
-    }
-    else{
-      const newDoador = await connection('doador')
-      .returning(['nome','telefone'])
+      await connection('doador')
       .insert({
-        nome,
-        telefone,
+        nome: nome,
+        telefone: telefone,
       })
-      if(newDoador[0]){
-        return response.status(200).send(newDoador[0])
-      }else{
-        return response.status(500).send({error: 'Erro inesperado'})
-      }
+      .then(async () =>{
+          await connection('doador').where({
+            nome: nome,
+            telefone: telefone
+          })
+          .select('nome','telefone')
+          .first()
+          .then((res) => {
+            const normalObj = Object.assign({}, res)
+            return response.status(200).send(normalObj)
+          })
+          })
+      .catch((e) => {
+        
+        if(e.sqlMessage){
+          return response.status(400).send({ error: 'Usuario já existe' })
+        }
+      })
+
+
+      // if(newDoador[0]){
+      //   return response.status(200).send(newDoador[0])
+      // }else{
+      //   return response.status(500).send({error: 'Erro inesperado'})
+      // }
       
-    }   
+     
 
   },
 
