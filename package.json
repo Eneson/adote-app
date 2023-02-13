@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node src/server.js",
+    "start": "nodemon src/server.js",
     "test": "cross-env NODE_ENV=test jest"
   },
   "keywords": [],
@@ -18,7 +18,11 @@
     "express": "^4.18.2",
     "knex": "^2.3.0",
     "multer": "^1.4.5-lts.1",
-    "sqlite3": "^5.1.2"
+    "multer-sftp": "^1.1.1",
+    "node-scp": "^0.0.22",
+    "node-ssh": "^13.0.1",
+    "sqlite3": "^5.1.2",
+    "ssh2-sftp-client": "^9.0.4"
   },
   "devDependencies": {
     "jest": "^25.2.4",

@@ -3,14 +3,24 @@
 module.exports = {
 
   development: {
-    client: 'sqlite3',
+    client: 'mysql',
     connection: {
-      filename: './src/database/db2.sqlite'
+      host : '127.0.0.1',
+      port : 3306,
+      user : 'your_database_user',
+      password : 'your_database_password',
+      database : 'myapp_test'
     },
-    migrations: {
-      directory: './src/database/migrations'
-    },
-    useNullAsDefault: true,
+
+    // client: 'sqlite3',
+    // connection: {
+    //   //filename: './src/database/db2.sqlite'
+    //   filename: 'https://casadoborracheiroitb.com.br/teste/database/db2.sqlite'
+    // },
+    // migrations: {
+    //   directory: 'https://casadoborracheiroitb.com.br/teste/database/db2.smigrations'
+    // },
+    // useNullAsDefault: true,
   },
 
   test: {
