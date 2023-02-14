@@ -21,7 +21,7 @@ module.exports = {
       const animal = await connection('animal')
         .join('doador', 'doador.telefone', '=', 'animal.DoadorTelefone')
         .limit(10)
-        .offset((page - 1) * 5 )
+        .offset((page - 1) * 10 )
         .select([
           'animal.*',
           'doador.nome',
@@ -29,7 +29,7 @@ module.exports = {
         ])
 
       response.header('X-Total-Count', count['count(*)'])
-      
+      console.log(animal)
       return response.json(animal)
       }
  },
@@ -64,19 +64,21 @@ module.exports = {
           './uploads/'+foto,
           './public_html/teste/uploads/'+foto,
           // options?: TransferOptions
-        ).then((e,a) => {
-          console.log(e)
+        )
+        .catch((a) => {
           console.log(a)
-        }).catch((a) => {
-          console.log(a)
+
         })
-        
         client.close() // remember to close connection after you finish
+        return response.status(200).send('ok')
+        
       } catch (e) {
-        console.log(e)
+        return response.status(500).send({error: 'Erro inesperado'}) 
       }
       
-      return response.json(a)
+     })
+     .catch(() => {
+      return response.status(500).send({error: 'Erro inesperado'}) 
      })
 
    
