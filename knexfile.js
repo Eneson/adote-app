@@ -9,8 +9,9 @@ module.exports = {
       port : 3306,
       user : 'casad240',
       password : 'eE!20039807',
-      database : 'casad240_adote-app'
+      database : 'casad240_adote-app',
     },
+
 
     // client: 'sqlite3',
     // connection: {

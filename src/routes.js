@@ -2,15 +2,13 @@ const express = require('express')
 const { celebrate, Segments, Joi } = require('celebrate')
 
 const DoadorController = require('./controllers/DoadorController')
-const IncidentController = require('./controllers/IncidentController')
 const InicialController = require('./controllers/InicialController')
 const SessionController = require('./controllers/SessionController')
 const AnimalController = require('./controllers/AnimalController')
-const ImageController = require('./controllers/ImageController')
-
 const routes = express.Router()
 
 const multerConfig = require('./config/multer');
+const ReportController = require('./controllers/ReportController')
 
 
 routes.get('/', InicialController.index)
@@ -45,7 +43,6 @@ routes.get('/animal', celebrate({
   })
 }),AnimalController.index)
 
-routes.get('/:path', ImageController.getImage)
 
 routes.delete('/animal/:id', celebrate({
   [Segments.PARAMS]: Joi.object().keys({
@@ -53,5 +50,13 @@ routes.delete('/animal/:id', celebrate({
   })
 }), AnimalController.delete)
 
+routes.post('/report', ReportController.create)
+
+routes.get('*', (req, res) => {
+  res.status(404).send('<h1>Error: 404</h1>\n<h2>Rota não encontrada</h2>')
+})
+routes.post('*', (req, res) => {
+  res.status(404).send('<h1>Error: 404</h1>\n<h2>Rota não encontrada</h2>')
+})
 
 module.exports = routes

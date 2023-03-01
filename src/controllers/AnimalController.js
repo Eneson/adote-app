@@ -17,7 +17,7 @@ module.exports = {
       const { page = 1 } = request.query
 
       const [count] = await connection('animal').count()
-
+        
       const animal = await connection('animal')
         .join('doador', 'doador.telefone', '=', 'animal.DoadorTelefone')
         .limit(10)
@@ -29,14 +29,14 @@ module.exports = {
         ])
 
       response.header('X-Total-Count', count['count(*)'])
-      console.log(animal)
+      
       return response.json(animal)
       }
  },
 
   async create(request, response) {
     const { filename } = request.file 
-    const { Nome, Descricao, DataNasc, Porte, Sexo, Tipo, Vacina, localDir } = request.body
+    const { Nome, Descricao, DataNasc, Porte, Sexo, Tipo, Vacina, } = request.body
     const  DoadorTelefone  = request.headers.authorization
     
     const foto = filename
