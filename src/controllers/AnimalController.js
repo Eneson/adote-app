@@ -30,7 +30,12 @@ module.exports = {
       }else {
       const { page = 1 } = request.query
 
-      const [count] = await connection('animal').count()
+      const [count] = await connection('animal').count().then(() => {
+
+      }).catch((error) => {
+        console.log('errouuu')
+        console.log(error)
+      })
       
       const animal = await connection('animal')
         .join('doador', 'doador.telefone', '=', 'animal.DoadorTelefone')
