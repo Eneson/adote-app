@@ -12,27 +12,17 @@ module.exports = {
       database : 'adotesto_01',
     },
 
-
-    // client: 'sqlite3',
-    // connection: {
-    //   //filename: './src/database/db2.sqlite'
-    //   filename: 'https://casadoborracheiroitb.com.br/teste/database/db2.sqlite'
-    // },
-    // migrations: {
-    //   directory: 'https://casadoborracheiroitb.com.br/teste/database/db2.smigrations'
-    // },
-    // useNullAsDefault: true,
   },
 
   test: {
-    client: 'sqlite3',
+    client: 'mysql',
     connection: {
-      filename: './src/database/test.sqlite'
+      host : 'host4069.hospedameusite.net',
+      port : 3306,
+      user : 'adotesto_01',
+      password : 'eE!20039807',
+      database : 'adotesto_01',
     },
-    migrations: {
-      directory: './src/database/migrations'
-    },
-    useNullAsDefault: true,
   },
 
   /*staging: {
