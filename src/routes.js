@@ -5,10 +5,10 @@ const DoadorController = require('./controllers/DoadorController')
 const InicialController = require('./controllers/InicialController')
 const SessionController = require('./controllers/SessionController')
 const AnimalController = require('./controllers/AnimalController')
-const routes = express.Router()
-
-const multerConfig = require('./config/multer');
 const ReportController = require('./controllers/ReportController')
+const routes = express.Router()
+const multerConfig = require('./config/multer');
+
 
 
 routes.get('/', InicialController.index)

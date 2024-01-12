@@ -5,11 +5,11 @@ module.exports = {
   development: {
     client: 'mysql',
     connection: {
-      host : 'casadoborracheiroitb.com.br',
+      host : 'host4069.hospedameusite.net',
       port : 3306,
-      user : 'casad240',
+      user : 'adotesto_01',
       password : 'eE!20039807',
-      database : 'casad240_adote-app',
+      database : 'adotesto_01',
     },
 
 

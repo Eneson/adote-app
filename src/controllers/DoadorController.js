@@ -1,4 +1,5 @@
 const connection  = require('../database/connection')
+const SessionController = require('./SessionController.js');
 
 module.exports = {
   async index(request, response) {
@@ -26,7 +27,7 @@ module.exports = {
             nome: nome,
             telefone: telefone
           })
-          .select('nome','telefone')
+          .select('nome','telefone','id_doador')
           .first()
           .then((res) => {
             const normalObj = Object.assign({}, res)
@@ -69,7 +70,11 @@ module.exports = {
       return response.status(401).json({ error: 'Operation not permitted.' })
     }
 
-    await connection('doador').where('telefone', telefone).delete()
+    await connection('doador').where('telefone', telefone).delete().then(async () => {
+      await connection('animal')
+      .where('DoadorTelefone', telefone)
+      .delete()
+    })
 
     return response.status(204).send()
   },
@@ -80,13 +85,12 @@ module.exports = {
     await connection('doador').update({
       nome,
       telefone,
-    }).where('telefone', DoadorTelefone)
-
-    await connection('animal').update({
-      'DoadorTelefone': telefone
+    }).where('telefone', DoadorTelefone).then(async (a) => {
+      //console.log(request.body)
+      await SessionController.create(request, response, request.body);
+    }).catch(()=> {
+      return response.status(500).send({error: 'Erro inesperado'}) 
     })
-    .select('DoadorTelefone').where('DoadorTelefone', DoadorTelefone)
 
-    return response.json('sucesso')
   }
 }

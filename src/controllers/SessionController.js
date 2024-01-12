@@ -2,15 +2,15 @@ const connection = require('../database/connection')
 
 module.exports = {
   async create(request, response) {
+    console.log(request.body)
     const { nome, telefone } = request.body
-    
     try{      
       const doador = await connection('doador')
         .where({
           nome: nome,
           telefone: telefone
         })
-        .select('nome','telefone')
+        .select('nome','telefone','id_doador')
         .first()
 
         if(doador){

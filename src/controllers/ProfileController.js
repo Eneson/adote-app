@@ -6,7 +6,7 @@ module.exports = {
 
     const incidents = await connection('animal').where('doador_telefone', doador_telefone)
     .select('*')
-
+    console.log(incidents)
   return response.json(incidents)
   }
 }
