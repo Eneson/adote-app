@@ -17,6 +17,7 @@ var imagekit = new ImageKit({
 
 module.exports = {
   async index(request, response) {
+    
     if(request.query.telefone){
       const doador = await connection('animal')
       .select('*')
