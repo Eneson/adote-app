@@ -17,11 +17,15 @@ var imagekit = new ImageKit({
 
 module.exports = {
   async index(request, response) {
-    
+    console.log('aaaaaaa')
     if(request.query.telefone){
       const doador = await connection('animal')
       .select('*')
-      .where('DoadorTelefone', '=',request.query.telefone)
+      .where('DoadorTelefone', '=',request.query.telefone).then(() => {
+
+      }).catch((error) => {
+        console.log(error)
+      })
       return response.json(doador)
       }else {
       const { page = 1 } = request.query
