@@ -30,7 +30,7 @@ module.exports = {
       }else {
       const { page = 1 } = request.query
 
-      
+
       const [count] = await connection('animal').count()
       
       const animal = await connection('animal')
@@ -115,6 +115,9 @@ module.exports = {
               console.log(err)
               reject(err)
             })
+      }).catch((err) => {
+        console.log(err)
+        reject(err)
       })
     })
     
