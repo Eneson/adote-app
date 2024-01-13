@@ -63,17 +63,18 @@ module.exports = {
         privateKeyPath: './id_rsa',
         passphrase: 'eE!20039807',
       }).then(() => {
+        console.log('aaaaa')
         sharp('./uploads/'+foto).resize(441,544).jpeg({quality : 100}).toFile('./uploads/'+foto_resize)
             .then(async ()=>{   
-                const PutFTP = new Promise(async (resolve, reject) => {
-                  ssh.putFile('./uploads/'+foto_resize, './public_html/files/'+foto_resize)
-                  .then(() => {
-                    resolve('upload sucess')
-                  }).catch((err) => {
-                    console.log(err)
-                    reject(err)
-                  })
-                })                
+                // const PutFTP = new Promise(async (resolve, reject) => {
+                //   ssh.putFile('./uploads/'+foto_resize, './public_html/files/'+foto_resize)
+                //   .then(() => {
+                //     resolve('upload sucess')
+                //   }).catch((err) => {
+                //     console.log(err)
+                //     reject(err)
+                //   })
+                // })                
                 const PutImagekit = new Promise(async (resolve, reject) =>{
                   await fsPromises.readFile('./uploads/'+foto_resize).then((fileBuffer) => {
                     imagekit.upload({
@@ -91,26 +92,27 @@ module.exports = {
                     reject(e)
                   })
                 })              
-                await Promise.all([PutFTP, PutImagekit]).then(async (a)=>{
+                // await Promise.all([PutFTP, PutImagekit]).then(async (a)=>{
+                PutImagekit.then(async(a) => {  
                   await connection('animal').insert({
-                    Nome,
-                    Descricao,
-                    DataNasc,
-                    Sexo,
-                    DoadorTelefone,
-                    foto,
-                    Tipo,
-                    Vacina,
-                    id_doador,
-                    Vermifugado
-                  }).then(() => {
-                    resolve(a)
+                      Nome,
+                      Descricao,
+                      DataNasc,
+                      Sexo,
+                      DoadorTelefone,
+                      foto,
+                      Tipo,
+                      Vacina,
+                      id_doador,
+                      Vermifugado
+                    }).then(() => {
+                      resolve(a)
+                    })
+                  }).catch((err) => {
+                    console.log(err)
+                    reject(err)
                   })
-                }).catch((err) => {
-                  console.log(err)
-                  reject(err)
-                })
-            })
+              })
             .catch((err) => {
               console.log(err)
               reject(err)
