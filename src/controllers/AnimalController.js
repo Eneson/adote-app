@@ -57,71 +57,49 @@ module.exports = {
     
 
     const insertFile = new Promise((resolve, reject) => {
-      ssh.connect({
-        host: '167.114.1.72',
-        username: 'adotesto',
-        privateKeyPath: './id_rsa',
-        passphrase: 'eE!20039807',
-      }).then(() => {
-        console.log('aaaaa')
-        sharp('./uploads/'+foto).resize(441,544).jpeg({quality : 100}).toFile('./uploads/'+foto_resize)
-            .then(async ()=>{   
-                // const PutFTP = new Promise(async (resolve, reject) => {
-                //   ssh.putFile('./uploads/'+foto_resize, './public_html/files/'+foto_resize)
-                //   .then(() => {
-                //     resolve('upload sucess')
-                //   }).catch((err) => {
-                //     console.log(err)
-                //     reject(err)
-                //   })
-                // })                
-                const PutImagekit = new Promise(async (resolve, reject) =>{
-                  await fsPromises.readFile('./uploads/'+foto_resize).then((fileBuffer) => {
-                    imagekit.upload({
-                      file : fileBuffer, 
-                      useUniqueFileName: false,
-                      fileName : foto_resize,  
-                    }).then((a) => {
-                      resolve(a)
-                    }).catch((err) => {
-                      console.log(err)
-                      reject(err)
-                    })
-                  }).catch((e)=>{
-                    console.log(e)
-                    reject(e)
-                  })
-                })              
-                // await Promise.all([PutFTP, PutImagekit]).then(async (a)=>{
-                PutImagekit.then(async(a) => {  
+      sharp('./uploads/'+foto).resize(441,544).jpeg({quality : 100}).toFile('./uploads/'+foto_resize)
+        .then(async ()=>{
+              await fsPromises.readFile('./uploads/'+foto_resize).then((fileBuffer) => {
+                imagekit.upload({
+                  file : fileBuffer, 
+                  useUniqueFileName: false,
+                  fileName : foto_resize,  
+                }).then(async (a) => {
                   await connection('animal').insert({
-                      Nome,
-                      Descricao,
-                      DataNasc,
-                      Sexo,
-                      DoadorTelefone,
-                      foto,
-                      Tipo,
-                      Vacina,
-                      id_doador,
-                      Vermifugado
-                    }).then(() => {
-                      resolve(a)
-                    })
+                    Nome,
+                    Descricao,
+                    DataNasc,
+                    Sexo,
+                    DoadorTelefone,
+                    foto,
+                    Tipo,
+                    Vacina,
+                    id_doador,
+                    Vermifugado
+                  }).then(() => {
+                    resolve(a)
                   }).catch((err) => {
                     console.log(err)
                     reject(err)
                   })
+                })
+                .catch((err) => {
+                  console.log(err)
+                  reject(err)
+                })
+              }).then(() => {
+              }).catch((e)=>{
+                console.log(e)
+                reject(e)
               })
-            .catch((err) => {
-              console.log(err)
-              reject(err)
-            })
-      }).catch((err) => {
-        console.log(err)
-        reject(err)
+        })         
+        .catch((err) => {
+          console.log(err)
+          reject(err)
+        })
       })
-    })
+      
+    
     
     insertFile.then((a) => {  
       return response.status(200).send('ok') 
