@@ -149,35 +149,20 @@ module.exports = {
       .where('id', id)
       .delete()
       .then(async () => {
-        try {
-          ssh.connect({
-              host: '167.114.1.72',
-              username: 'adotesto',
-              privateKeyPath: './id_rsa',
-              passphrase: 'eE!20039807',
-            })
-            .then(() => {
-                imagekit.listFiles({
-                  searchQuery : 'name = "resize_'+foto+'"'
-                }).then((result) => {
-                  console.log(result);
-                  imagekit.deleteFile(result[0].fileId).then(() => {
-                    return response.status(200).send('ok')
-                  }).catch(() => { 
-                    return response.status(500).send({error: 'Erro inesperado'}) 
-                  })
-                }).catch(() => {
-                  return response.status(500).send({error: 'Erro inesperado'}) 
-                })
-            })
-            .catch(() => {
+            imagekit.listFiles({
+              searchQuery : 'name = "resize_'+foto+'"'
+            }).then((result) => {
+              console.log(result);
+              imagekit.deleteFile(result[0].fileId).then(() => {
+                return response.status(200).send('ok')
+              }).catch(() => { 
+                return response.status(500).send({error: 'Erro inesperado'}) 
+              })
+            }).catch(() => {
               return response.status(500).send({error: 'Erro inesperado'}) 
             })
-          
-        } catch (e) {
-          console.log(e)
-          return response.status(500).send({error: 'Erro inesperado'}) 
-        }
+    }).catch(() => {
+      return response.status(500).send({error: 'Erro inesperado'}) 
     })
 
   }
