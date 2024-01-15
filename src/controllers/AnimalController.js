@@ -157,7 +157,6 @@ module.exports = {
               passphrase: 'eE!20039807',
             })
             .then(() => {
-              ssh.execCommand('rm resize_'+foto, { cwd:'public_html/files' }).then(() => {
                 imagekit.listFiles({
                   searchQuery : 'name = "resize_'+foto+'"'
                 }).then((result) => {
@@ -170,9 +169,6 @@ module.exports = {
                 }).catch(() => {
                   return response.status(500).send({error: 'Erro inesperado'}) 
                 })
-              }).catch(() => {
-                return response.status(500).send({error: 'Erro inesperado'}) 
-              })
             })
             .catch(() => {
               return response.status(500).send({error: 'Erro inesperado'}) 
