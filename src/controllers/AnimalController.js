@@ -21,7 +21,6 @@ module.exports = {
       const doador = await connection('animal')
       .select('*')
       .where('DoadorTelefone', '=',request.query.telefone)
-      console.log(doaro)
       return response.json(doador)
       }else {
       const { page = 1 } = request.query
