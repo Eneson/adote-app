@@ -9,7 +9,7 @@ module.exports = {
 
   async create(request, response) {
     const { desc, animal_id, animal_nome, doador_tel, user_tel, user_nome } = request.body
-    
+    console.log(request.usuario)
 
     let ts = Date.now();
 
