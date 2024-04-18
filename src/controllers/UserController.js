@@ -101,8 +101,6 @@ module.exports = {
           return response.status(401).json({error: "Falha na autenticação"})
         }
         bcrypt.compare(senha, user[0].senha, (err, result) => {
-          console.log(senha)
-          console.log(user[0].senha)
 
           if(err){            
             return response.status(401).json({error: "Falha na autenticação"})
@@ -115,7 +113,7 @@ module.exports = {
               nome: user[0].nome,
               telefone: user[0].telefone
             }, `${process.env.JWT_KEY}`,{
-              expiresIn: "1h"
+              expiresIn: "1y"
             })
             return response.status(200).send({
               mensagem: "Autenticado com sucesso",

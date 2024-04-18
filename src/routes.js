@@ -6,6 +6,7 @@ const InicialController = require('./controllers/InicialController')
 const AnimalController = require('./controllers/AnimalController')
 const ReportController = require('./controllers/ReportController')
 const login = require('./middleware/login')
+const SessionController = require('./controllers/SessionController')
 
 const routes = express.Router()
 const multerConfig = require('./config/multer');
@@ -17,6 +18,7 @@ routes.get('/', InicialController.index)
 routes.get('/adote', InicialController.index)
 
 routes.post('/login', UserController.login)
+routes.get('/session', SessionController.index)
 
 routes.post('/user/update',celebrate({
   [Segments.BODY]: Joi.object().keys({
@@ -47,12 +49,7 @@ routes.delete('/user/:telefone', login, celebrate({
 
 routes.post('/animal', login, multerConfig.upload.single('produto_imagem'), AnimalController.create)
 
-routes.get('/animal', celebrate({
-  [Segments.QUERY]: Joi.object().keys({
-    telefone: Joi.string(),
-    page: Joi.number(),
-  })
-}),AnimalController.index)
+routes.get('/animal', AnimalController.index)
 
 
 routes.delete('/animal/:id', login, celebrate({

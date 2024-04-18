@@ -29,13 +29,13 @@ module.exports = {
       const [count] = await connection('animal').count()
       
       const animal = await connection('animal')
-        .join('doador', 'doador.telefone', '=', 'animal.DoadorTelefone')
+        .join('user', 'user.telefone', '=', 'animal.UserEmail')
         .limit(10)
         .offset((page - 1) * 10 )
         .select([
           'animal.*',
-          'doador.nome',
-          'doador.telefone',
+          'user.nome',
+          'user.telefone',
         ])
       response.header('X-Total-Count', count['count(*)'])
       
