@@ -12,7 +12,6 @@ module.exports = {
 
   async create(request, response) {
     const { nome, telefone, email, senha } = request.body
-    console.log(request.body)
     bcrypt.hash(senha, 10, async (errBcrypt, hash) => {
       if(errBcrypt){return response.status(500).send({error: errBcrypt})}
       
@@ -23,18 +22,26 @@ module.exports = {
         email: email,
         senha: hash
       })
-      .then(async (res) =>{    
-            console.log(res)
-            const data = {
-              nome: nome,
-              telefone: telefone,
-              email: email,
-              senha: hash
-            }
-            return response.status(200).send(data)
+      .then(async (id_user) =>{  
+        const user = await connection('user')
+        .where({
+          email: email,
+        })
+        .select()
+        const token = jwt.sign({
+          email: user[0].email,
+          id_user: user[0].id_user,
+          nome: user[0].nome,
+          telefone: user[0].telefone
+        }, `${process.env.JWT_KEY}`,{
+          expiresIn: "1y"
+        })
+        return response.status(200).send({
+          mensagem: "Autenticado com sucesso",
+          token: token
+        })
           })
       .catch((e) => {    
-        console.log(e)    
         if(e.sqlMessage){
           return response.status(400).send({ error: 'Usuario já existe' })
         }
@@ -71,21 +78,82 @@ module.exports = {
 
     return response.status(204).send()
   },
+  
   async update(request,response){
-    const { nome, telefone } = request.body
-    const UserTelefone  = request.headers.authorization
+    const { nome, telefone, email, id_user } = request.body
+    if(request.body.senha){
+      const senha = request.body.senha
+      bcrypt.hash(senha, 10, async (errBcrypt, hash) => {
+        if(errBcrypt){return response.status(500).send({error: errBcrypt})}        
+        await connection('user')
+        .update({
+          nome: nome,
+          telefone: telefone,
+          email: email,
+          senha: hash
+        }).where('id_user', id_user)
+        .then(async (id_user) => {  
+          const user = await connection('user')
+          .where({
+            email: email,
+          })
+          .select()
+          const token = jwt.sign({
+            email: user[0].email,
+            id_user: user[0].id_user,
+            nome: user[0].nome,
+            telefone: user[0].telefone
+          }, `${process.env.JWT_KEY}`,{
+            expiresIn: "1y"
+          })
+          return response.status(200).send({
+            mensagem: "Autenticado com sucesso",
+            token: token
+          })
+            })
+        .catch((e) => {    
+          if(e.sqlMessage){
+            return response.status(400).send({ error: 'Usuario já existe' })
+          }
+        })
+  
+      }) 
+    }else{
+             
+        await connection('user')
+        .update({
+          nome: nome,
+          telefone: telefone,
+          email: email,
+        }).where('id_user', id_user)
+        .then(async (teste) => {  
+          const user = await connection('user')
+          .where({
+            email: email,
+          })
+          .select()
+          const token = jwt.sign({
+            email: user[0].email,
+            id_user: user[0].id_user,
+            nome: user[0].nome,
+            telefone: user[0].telefone
+          }, `${process.env.JWT_KEY}`,{
+            expiresIn: "1y"
+          })
+          return response.status(200).send({
+            mensagem: "Autenticado com sucesso",
+            token: token
+          })
+            })
+        .catch((e) => {    
+          if(e.sqlMessage){
+            return response.status(400).send({ error: 'ERRO' })
+          }
+        })
+    }
+    
 
-    await connection('user').update({
-      nome,
-      telefone,
-    }).where('telefone', UserTelefone)
-
-    await connection('animal').update({
-      'UserTelefone': telefone
-    })
-    .select('UserTelefone').where('UserTelefone', UserTelefone)
-
-    return response.json('sucesso')
+    
   },
 
   async login(request,response){
@@ -105,7 +173,6 @@ module.exports = {
           if(err){            
             return response.status(401).json({error: "Falha na autenticação"})
           }
-
           if(result){
             const token = jwt.sign({
               email: user[0].email,
@@ -121,7 +188,6 @@ module.exports = {
             })
           }
           
-          console.log('aaaaaaaa')
           return response.status(401).json({error: "Falha na autenticação"})
         })
     }catch(e){

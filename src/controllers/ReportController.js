@@ -9,7 +9,7 @@ module.exports = {
 
   async create(request, response) {
     const { desc, animal_id, animal_nome, doador_tel, user_tel, user_nome } = request.body
-    console.log(request.usuario)
+    const {email, id_user, nome, telefone} = request.usuario
 
     let ts = Date.now();
 
@@ -28,9 +28,9 @@ module.exports = {
         desc: desc,
         animal_id: animal_id,
         animal_nome: animal_nome,
-        doador_tel: doador_tel,
-        user_nome: user_nome,
-        user_tel: user_tel
+        user_nome: nome,
+        user_tel: telefone,
+        id_user: id_user
       })
       .then(() => {
         return response.status(200).send({mess: 'Denuncia feita!'})

@@ -2,30 +2,30 @@ const express = require('express')
 const { celebrate, Segments, Joi } = require('celebrate')
 
 const UserController = require('./controllers/UserController')
-const InicialController = require('./controllers/InicialController')
 const AnimalController = require('./controllers/AnimalController')
 const ReportController = require('./controllers/ReportController')
-const login = require('./middleware/login')
 const SessionController = require('./controllers/SessionController')
+const login = require('./middleware/login')
 
 const routes = express.Router()
 const multerConfig = require('./config/multer');
 
 
 
-routes.get('/', InicialController.index)
-
-routes.get('/adote', InicialController.index)
+routes.get('/', (req, res) => {
+  return res.json('teste')
+})
 
 routes.post('/login', UserController.login)
 routes.get('/session', SessionController.index)
 
-routes.post('/user/update',celebrate({
+routes.post('/user/update', login, celebrate({
   [Segments.BODY]: Joi.object().keys({
     nome: Joi.string().required(),
     telefone: Joi.string().required().min(8).max(13),
     email: Joi.string().email().required(),
-    senha: Joi.string().required().min(8)
+    senha: Joi.string().min(8),
+    id_user: Joi.number()
   })
 }), UserController.update)
 
@@ -48,8 +48,11 @@ routes.delete('/user/:telefone', login, celebrate({
 }), UserController.delete)
 
 routes.post('/animal', login, multerConfig.upload.single('produto_imagem'), AnimalController.create)
+routes.post('/animal/update', login, multerConfig.upload.single('produto_imagem'), AnimalController.update)
 
 routes.get('/animal', AnimalController.index)
+
+routes.get('/animal/myanimals', login, AnimalController.myAnimals)
 
 
 routes.delete('/animal/:id', login, celebrate({
