@@ -43,7 +43,7 @@ routes.post('/user', celebrate({
 routes.delete('/user/:telefone', login, celebrate({
   [Segments.PARAMS]: Joi.object().keys({
     email: Joi.string().email().required(),
-    senha: Joi.string().required().min(8),
+    //senha: Joi.string().required().min(8),
   })
 }), UserController.delete)
 
