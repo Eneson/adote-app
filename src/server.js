@@ -7,7 +7,6 @@ var http = require('http');
 const app = express()
 
 const port = process.env.PORT || 3000;
-//testea
 
 app.use(function (request, response, next) {
   response.header("Access-Control-Allow-Origin", "*");
