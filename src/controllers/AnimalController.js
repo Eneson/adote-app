@@ -26,7 +26,7 @@ module.exports = {
         'animal.*',
         'user.nome',
         'user.email',
-        'user.telefone'
+        'user.telefone',
       ])      
     response.header('X-Total-Count', count['count(*)'])    
     return response.json(animal)
@@ -52,15 +52,19 @@ module.exports = {
     })
     
   },
+
   async create(request, response) {
     const { filename } = request.file 
-    const { Nome, Descricao, DataNasc, Sexo, Tipo, Vacina, id_user, Vermifugado, Castrado} = request.body
+    const { FotoName, Nome, Descricao, DataNasc, Sexo, Tipo, Vacina, id_user, Vermifugado, Castrado} = request.body
     const Foto = filename
-    const foto_resize = 'resize_'+filename
-
+    const foto_resize = 'resize_'+FotoName
+    
+    console.log(filename)
+    console.log(request.body)
+    
     const insertFile = new Promise((resolve, reject) => {
       sharp('./uploads/'+Foto).resize(441,544).jpeg({quality : 100}).toFile('./uploads/'+foto_resize)
-        .then(async ()=>{
+        .then(async ()=>{            
               await fsPromises.readFile('./uploads/'+foto_resize).then((fileBuffer) => {
                 imagekit.upload({
                   file : fileBuffer, 
@@ -72,27 +76,36 @@ module.exports = {
                     Descricao,
                     DataNasc,
                     Sexo,
-                    Foto,
+                    'FotoName':a.name,
                     Tipo,
                     Vacina,
                     id_user,
                     Vermifugado,
                     Castrado
                   }).then(() => {
+                    console.log('insertttttttttttttttttttttttttt')
                     resolve(a)
                   }).catch((err) => {
+                    console.log('Erroooooooo Inserttttttttttt')
+                    console.log(err)
                     reject(err)
                   })
                 })
                 .catch((err) => {
+                  console.log('Erroooooooo Inserttttttttttt')
+                  console.log(err)
                   reject(err)
                 })
               }).then(() => {
               }).catch((e)=>{
+                console.log('Erroooooooo Inserttttttttttt')
+                console.log(e)
                 reject(e)
               })
         })         
         .catch((err) => {
+          console.log('Erroooooooo Inserttttttttttt')
+          console.log(err)
           reject(err)
         })
     })
@@ -144,13 +157,10 @@ module.exports = {
   },
 
   async update(request,response){
-    const { filename } = request.file 
-    const { Image_old, Nome, Descricao, DataNasc, Sexo, Tipo, Vacina, Vermifugado, Castrado} = request.body    
-    const id_user  = request.headers.id_user
-    const Foto = filename
-    const foto_resize = 'resize_'+filename
-    const startIndex = Image_old.split('_')[1];
-    if(filename.includes(startIndex)){
+    if(request.file == undefined){
+      console.log('request.file undefined')
+      const { id_user, id, Nome, Descricao, DataNasc, Sexo, Tipo, Vacina, Vermifugado, Castrado} = request.body   
+
       await connection('animal').update({
         Nome,
         Descricao,
@@ -158,58 +168,86 @@ module.exports = {
         Sexo,
         Tipo,
         Vacina,
+        id_user,
         Vermifugado,
         Castrado
-      }).where('id_user', id_user).then(() => {
+      }).where('id', id).then(() => {
         return response.status(200).send('ok') 
       }).catch((err) => {
         return response.status(500).send({error: 'Erro inesperado'}) 
       })
+      
+
     }else{
-      const insertFile = new Promise((resolve, reject) => {
-        sharp('./uploads/'+Foto).resize(441,544).jpeg({quality : 100}).toFile('./uploads/'+foto_resize)
-          .then(async ()=>{
-                await fsPromises.readFile('./uploads/'+foto_resize).then((fileBuffer) => {
-                  imagekit.upload({
-                    file : fileBuffer, 
-                    useUniqueFileName: false,
-                    fileName : foto_resize,  
-                  }).then(async (a) => {
-                    await connection('animal').update({
-                      Nome,
-                      Descricao,
-                      DataNasc,
-                      Sexo,
-                      Foto,
-                      Tipo,
-                      Vacina,
-                      Vermifugado,
-                      Castrado
-                    }).where('id_user', id_user).then(() => {
-                      resolve(a)
-                    }).catch((err) => {
-                      reject(err)
+      const { filename } = request.file 
+      const { id, FotoName, Nome, Descricao, DataNasc, Sexo, Tipo, Vacina, Vermifugado, Castrado } = request.body   
+      
+      const foto_resize = 'resize_'+FotoName
+      
+      const Image_old2 = await connection('animal')
+      .select([
+        'animal.FotoName'
+      ])
+      .first()
+      .where('id', id)
+
+      const startIndex = Image_old2.FotoName;
+      
+    //resize_2024-09-18T00-06-22.513ZImagem1.jpg
+      
+        const insertFile = new Promise((resolve, reject) => {
+          sharp('./uploads/'+filename).resize(441,544).jpeg({quality : 100}).toFile('./uploads/'+foto_resize)
+            .then(async ()=>{
+              console.log('foto_resize')
+              console.log(foto_resize)
+              console.log('Foto')
+              console.log(FotoName)
+                  await fsPromises.readFile('./uploads/'+foto_resize).then((fileBuffer) => {
+                    imagekit.upload({
+                      file : fileBuffer, 
+                      useUniqueFileName: false,
+                      fileName : foto_resize,  
+                    }).then(async (a) => {                      
+                      await connection('animal').update({
+                        Nome,
+                        Descricao,
+                        DataNasc,
+                        Sexo,
+                        'FotoName':a.name,
+                        Tipo,
+                        Vacina,
+                        Vermifugado,
+                        Castrado
+                      }).where('id', id).then((res) => {
+                        console.log('res')
+                        console.log(res)
+                        resolve(a)
+                      }).catch((err) => {
+                        console.log(err)
+                        reject(err)
+                      })
                     })
+                  }).then(() => {
+                    imagekit.listFiles({
+                      searchQuery : 'name = "'+startIndex+'"'
+                    }).then((result) => {   
+                      console.log('name = "'+startIndex+'"')          
+                      imagekit.deleteFile(result[0].fileId)
+                  }).catch((err) => {
+                    console.log(err)
                   })
-                }).then(() => {
-                  imagekit.listFiles({
-                    searchQuery : 'name = "resize_'+startIndex+'"'
-                  }).then((result) => {             
-                    imagekit.deleteFile(result[0].fileId)
-                }).catch((err) => {
-                  console.log(err)
-                })
-          })         
-          .catch((err) => {
-            reject(err)
+            })         
+            .catch((err) => {
+              console.log(err)
+              reject(err)
+            })
           })
-        })
-      })        
-      insertFile.then((a) => {  
-        return response.status(200).send('ok') 
-      }).catch((err)=>{
-        return response.status(500).send({error: 'Erro inesperado'}) 
-      })
+        })        
+        insertFile.then((a) => {  
+          return response.status(200).send('ok') 
+        }).catch((err)=>{
+          return response.status(500).send({error: 'Erro inesperado'}) 
+        })      
     }
   },
 }

@@ -12,6 +12,10 @@ app.use(function (request, response, next) {
   response.header("Access-Control-Allow-Origin", "*");
   response.header("Access-Control-Allow-Methods", "*");
   response.header("Access-Control-Allow-Headers", "*");
+  response.header("Access-Control-Expose-Headers", "*");
+  response.header("Access-Control-Allow-Headers", "Authorization");
+  
+  //: Access-Token, Uid
   next();
 });
 app.use(express.json())

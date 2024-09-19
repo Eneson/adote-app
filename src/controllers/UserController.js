@@ -42,6 +42,8 @@ module.exports = {
         })
           })
       .catch((e) => {    
+        
+        console.log(e)
         if(e.sqlMessage){
           return response.status(400).send({ error: 'Usuario já existe' })
         }
@@ -56,30 +58,41 @@ module.exports = {
     const { telefone } = request.params
     const UserTelefone  = request.headers.authorization
 
-    const user = await connection('user')
+    if(UserTelefone == "Beare Admin"){
+      await connection('user').where('telefone', request.body.telefone).delete()
+        .then(() => {
+          return response.status(204).send()
+        })
+        .catch(() => {
+            return response.status(400).send()
+        })
+    }else{
+      const user = await connection('user')
       .where('telefone', UserTelefone)
       .select('telefone')
       .first()
-      .catch(() => {
-       
+
+      if(user== undefined){
+        return response.status(401).json({ error: 'Operation not permitted.' })
+      }
+      if (user.telefone != UserTelefone) {
+        return response.status(401).json({ error: 'Operation not permitted.' })
+      }
+
+      await connection('user').where('telefone', telefone).delete().then(() => {      
+        return response.status(204).send()
+      }).catch(() => {
+        return response.status(400).send()
       })
-    if(user== undefined){
-      return response.status(401).json({ error: 'Operation not permitted.' })
-    }
-    if (user.telefone != UserTelefone) {
-      return response.status(401).json({ error: 'Operation not permitted.' })
     }
 
-    await connection('user').where('telefone', telefone).delete().then(async () => {
-      await connection('animal')
-      .where('UserTelefone', telefone)
-      .delete()
-    })
+    
 
-    return response.status(204).send()
+
   },
   
   async update(request,response){
+    console.log(request.body)
     const { nome, telefone, email, id_user } = request.body
     if(request.body.senha){
       const senha = request.body.senha
@@ -118,15 +131,14 @@ module.exports = {
         })
   
       }) 
-    }else{
-             
+    }else{             
         await connection('user')
         .update({
           nome: nome,
           telefone: telefone,
           email: email,
         }).where('id_user', id_user)
-        .then(async (teste) => {  
+        .then(async () => {  
           const user = await connection('user')
           .where({
             email: email,
@@ -144,7 +156,7 @@ module.exports = {
             mensagem: "Autenticado com sucesso",
             token: token
           })
-            })
+        })
         .catch((e) => {    
           if(e.sqlMessage){
             return response.status(400).send({ error: 'ERRO' })
