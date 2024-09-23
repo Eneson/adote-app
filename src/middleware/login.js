@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 
 module.exports = (req, res, next) => {
     try {
-        console.log(req.headers.authorization)
         if(req.headers.authorization == 'Beare Admin'){     
             next()
         }else{

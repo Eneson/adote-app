@@ -5,6 +5,7 @@ const UserController = require('./controllers/UserController')
 const AnimalController = require('./controllers/AnimalController')
 const ReportController = require('./controllers/ReportController')
 const SessionController = require('./controllers/SessionController')
+const AdminController = require('./controllers/AdminController')
 const login = require('./middleware/login')
 
 const routes = express.Router()
@@ -45,6 +46,7 @@ routes.delete('/animal/:id', login, celebrate({
 routes.post('/report', login, ReportController.create)
 routes.get('/report', ReportController.index)
 routes.get('/report/:animal_id', ReportController.count)
+routes.delete('/report/:id', login, ReportController.delete)
 
 routes.get('*', (req, res) => {
   res.status(404).send('<h1>Error: 404</h1>\n<h2>Rota não encontrada</h2>')

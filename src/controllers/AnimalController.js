@@ -32,6 +32,7 @@ module.exports = {
     return response.json(animal)
     
   },
+  
   async myAnimals(request, response){
     const id_user = request.usuario.id_user
     await connection('animal')
@@ -57,197 +58,197 @@ module.exports = {
     const { filename } = request.file 
     const { FotoName, Nome, Descricao, DataNasc, Sexo, Tipo, Vacina, id_user, Vermifugado, Castrado} = request.body
     const Foto = filename
-    const foto_resize = 'resize_'+FotoName
-    
-    console.log(filename)
-    console.log(request.body)
-    
-    const insertFile = new Promise((resolve, reject) => {
+
+    const Trx_Create_animal = await connection.transaction();
+
+    const foto_resize = 'resize_'+FotoName.replace(/[\s()]/g, '_')
+        
+    const create_animal = new Promise(async (resolve, reject) => {
+
+    await Trx_Create_animal('animal').insert({
+      Nome,
+      Descricao,
+      DataNasc,
+      Sexo,
+      'FotoName':foto_resize,
+      Tipo,
+      Vacina,
+      id_user,
+      Vermifugado,
+      Castrado
+    }).then(() => {
       sharp('./uploads/'+Foto).resize(441,544).jpeg({quality : 100}).toFile('./uploads/'+foto_resize)
         .then(async ()=>{            
-              await fsPromises.readFile('./uploads/'+foto_resize).then((fileBuffer) => {
+              await fsPromises.readFile('./uploads/'+foto_resize)
+              .then((fileBuffer) => {
                 imagekit.upload({
                   file : fileBuffer, 
                   useUniqueFileName: false,
                   fileName : foto_resize,  
                 }).then(async (a) => {
-                  await connection('animal').insert({
-                    Nome,
-                    Descricao,
-                    DataNasc,
-                    Sexo,
-                    'FotoName':a.name,
-                    Tipo,
-                    Vacina,
-                    id_user,
-                    Vermifugado,
-                    Castrado
-                  }).then(() => {
-                    console.log('insertttttttttttttttttttttttttt')
-                    resolve(a)
-                  }).catch((err) => {
-                    console.log('Erroooooooo Inserttttttttttt')
-                    console.log(err)
-                    reject(err)
-                  })
+                  resolve("Adicionado com sucesso!")
                 })
                 .catch((err) => {
-                  console.log('Erroooooooo Inserttttttttttt')
-                  console.log(err)
                   reject(err)
                 })
-              }).then(() => {
-              }).catch((e)=>{
-                console.log('Erroooooooo Inserttttttttttt')
-                console.log(e)
-                reject(e)
+              })
+              .catch((err)=>{
+                reject(err)
               })
         })         
         .catch((err) => {
-          console.log('Erroooooooo Inserttttttttttt')
-          console.log(err)
           reject(err)
         })
+      })        
+    .catch((err) => {
+      reject(err)
     })
+  })
       
-    insertFile.then((a) => {  
+    create_animal.then(() => {
+      Trx_Create_animal.commit()
       return response.status(200).send('ok') 
-    }).catch((err)=>{
-      return response.status(500).send({error: 'Erro inesperado'}) 
     })
+    .catch((err) => {
+      Trx_Create_animal.rollback()
+      return response.status(500).send({error: 'Erro inesperado'})
+    });
     
   },
 
   async delete(request, response) {
     const { id } = request.params 
-    var foto = 0    
-    const getFoto = new Promise(async (resolve, reject) => {
-      await connection('animal')
-      .select('foto')
-      .first()
-      .where('id', '=', id)
-      .then((data) => {
-        resolve(data)
-      })
-      .catch((err) => {
-        reject(err)        
-      })
-    })
-    await getFoto.then((data) => {
-      foto = data.foto
-    }).catch((err) => {
-      return response.status(500).send({error: 'Erro inesperado'}) 
-    })
+    const Trx_delete_animal = await connection.transaction();
 
-    await connection('animal')
-      .where('id', id)
-      .delete()
-      .then(async () => {
-            imagekit.listFiles({
-              searchQuery : 'name = "resize_'+foto+'"'
-            }).then((result) => {
-              imagekit.deleteFile(result[0].fileId).then(() => {
-                return response.status(200).send('ok')
-              })
-            })
-    }).catch(() => {
-      return response.status(500).send({error: 'Erro inesperado'}) 
+    const delete_animal = new Promise(async (resolve, reject) => {  
+      Trx_delete_animal('animal')
+        .select('FotoName')
+        .first()
+        .where('id', '=', id)
+        .then(async (data) => {
+          const { FotoName } = data
+          await Trx_delete_animal('animal')
+          .where('id', id)
+          .delete()
+          .then(async () => {
+                imagekit.listFiles({
+                  searchQuery : 'name = '+ FotoName
+                }).then((result) => {
+                  imagekit.deleteFile(result[0].fileId).then(() => {
+                    resolve("Deletado com sucesso!")
+                  }).catch((err) => {
+                    reject(new Error(err))
+                  })
+                }).catch((err) => {              
+                  reject(new Error(err))
+                })
+          }).catch(() => {
+            reject(new Error('Não foi possível deletar o animal')) 
+          })          
+          .catch((err) => {     
+            reject(new Error(err))
+          })
+      })
+    })    
+    delete_animal.then(() => {
+      Trx_delete_animal.commit()
+      return response.status(200).send('ok') 
     })
-
+    .catch((err) => {
+      Trx_delete_animal.rollback()
+      return response.status(500).send({error: 'Erro inesperado'})
+    });
   },
 
-  async update(request,response){
-    if(request.file == undefined){
-      console.log('request.file undefined')
-      const { id_user, id, Nome, Descricao, DataNasc, Sexo, Tipo, Vacina, Vermifugado, Castrado} = request.body   
+  async update(request,response){    
+    const trx = await connection.transaction();
 
-      await connection('animal').update({
-        Nome,
-        Descricao,
-        DataNasc,
-        Sexo,
-        Tipo,
-        Vacina,
-        id_user,
-        Vermifugado,
-        Castrado
-      }).where('id', id).then(() => {
-        return response.status(200).send('ok') 
-      }).catch((err) => {
-        return response.status(500).send({error: 'Erro inesperado'}) 
-      })
+    const update_animal = new Promise(async (resolve, reject) => {
+      const { id_user, FotoName, id, Nome, Descricao, DataNasc, Sexo, Tipo, Vacina, Vermifugado, Castrado} = request.body
       
+      if(request.file == undefined){
+        await trx('animal').update({
+          Nome,
+          Descricao,
+          DataNasc,
+          Sexo,
+          Tipo,
+          Vacina,
+          id_user,
+          Vermifugado,
+          Castrado
+        }).where('id', id).then(() => {
+          resolve("Atualizado com sucesso!")
+        }).catch((err) => {
+          reject(new Error('Não foi possível atualizar as informações  do animal')) 
+        })  
+      }else{
+        const { filename } = request.file
+        
+        const foto_resize = 'resize_'+FotoName.replace(/[\s()]/g, '_');
+        
+        const Image_old2 = await trx('animal')
+        .select([
+          'animal.FotoName'
+        ])
+        .first()
+        .where('id', id)
 
-    }else{
-      const { filename } = request.file 
-      const { id, FotoName, Nome, Descricao, DataNasc, Sexo, Tipo, Vacina, Vermifugado, Castrado } = request.body   
-      
-      const foto_resize = 'resize_'+FotoName
-      
-      const Image_old2 = await connection('animal')
-      .select([
-        'animal.FotoName'
-      ])
-      .first()
-      .where('id', id)
-
-      const startIndex = Image_old2.FotoName;
-      
-    //resize_2024-09-18T00-06-22.513ZImagem1.jpg
-      
-        const insertFile = new Promise((resolve, reject) => {
+        const startIndex = Image_old2.FotoName.replace(/[\s()]/g, '_'); 
+        await connection('animal').update({
+          Nome,
+          Descricao,
+          DataNasc,
+          Sexo,
+          'FotoName':foto_resize,
+          Tipo,
+          Vacina,
+          id_user,
+          Vermifugado,
+          Castrado
+        }).where('id', id).then(() => {
           sharp('./uploads/'+filename).resize(441,544).jpeg({quality : 100}).toFile('./uploads/'+foto_resize)
             .then(async ()=>{
-              console.log('foto_resize')
-              console.log(foto_resize)
-              console.log('Foto')
-              console.log(FotoName)
-                  await fsPromises.readFile('./uploads/'+foto_resize).then((fileBuffer) => {
-                    imagekit.upload({
-                      file : fileBuffer, 
-                      useUniqueFileName: false,
-                      fileName : foto_resize,  
-                    }).then(async (a) => {                      
-                      await connection('animal').update({
-                        Nome,
-                        Descricao,
-                        DataNasc,
-                        Sexo,
-                        'FotoName':a.name,
-                        Tipo,
-                        Vacina,
-                        Vermifugado,
-                        Castrado
-                      }).where('id', id).then((res) => {
-                        console.log('res')
-                        console.log(res)
-                        resolve(a)
+                  await fsPromises.readFile('./uploads/'+foto_resize)
+                    .then((fileBuffer) => {                      
+                      imagekit.upload({
+                        file : fileBuffer, 
+                        useUniqueFileName: false,
+                        fileName : foto_resize,  
+                      }).then(async (a) => {                         
+                        //Deletando imagem
+                        imagekit.listFiles({
+                          searchQuery : 'name = "'+startIndex+'"'
+                        }).then((result) => {  
+                            imagekit.deleteFile(result[0].fileId)
+                        }).finally(() => {
+                          //Resolvendo a promise 
+                          resolve("Atualizado com sucesso!")
+                        })
                       }).catch((err) => {
-                        console.log(err)
                         reject(err)
                       })
+                    })      
+                    .catch((err) => {
+                      reject(err)
                     })
-                  }).then(() => {
-                    imagekit.listFiles({
-                      searchQuery : 'name = "'+startIndex+'"'
-                    }).then((result) => {   
-                      console.log('name = "'+startIndex+'"')          
-                      imagekit.deleteFile(result[0].fileId)
-                  }).catch((err) => {
-                    console.log(err)
-                  })
-            })         
-            .catch((err) => {
-              console.log(err)
-              reject(err)
-            })
+          }).catch((err) => {              
+            reject(err) 
           })
+        }).catch((err) => {
+          reject(err)
         })        
-        insertFile.then((a) => {  
-          return response.status(200).send('ok') 
-        }).catch((err)=>{
-          return response.status(500).send({error: 'Erro inesperado'}) 
-        })      
-    }
+      }
+    })
+
+    update_animal.then(() => {
+      trx.commit()
+      return response.status(200).send('ok') 
+    })
+    .catch(() => {
+      trx.rollback()
+      return response.status(500).send({error: 'Erro inesperado'})
+    });
+
   },
 }

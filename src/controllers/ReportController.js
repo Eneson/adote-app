@@ -1,23 +1,24 @@
 const connection  = require('../database/connection')
 
 module.exports = {
-  async index(request, response) {
-    const { animal_id } = request.params
-    
-    if(animal_id != undefined){
-      const animal = await connection('reports')
-      .join('animal', 'animal.id', '=', 'reports.animal_id')
-      .join('user', 'user.id_user', '=', 'reports.user_id')
-      .select([
-        'reports.*',
-        'animal.*',
-        'user.*'
-      ])
-      return response.json(animal)
-    }else{
-      const [reports] = await connection('reports').count()
-      return response.json(reports['count(*)'])
-    }    
+  async index(request, response) {   
+    const { page = 1 } = request.query
+    console.log(request.query)
+    const [reports] = await connection('reports').count()
+
+    const animal = await connection('reports')
+    .join('animal', 'animal.id', '=', 'reports.animal_id')
+    .join('user', 'user.id_user', '=', 'reports.id_user')
+    .offset((page - 1) * 10 )
+    .limit(10)
+    .select([
+      'reports.*',
+      'animal.Nome',
+      'user.nome',
+      'user.id_user',
+    ])
+    response.header('X-Total-Count', reports['count(*)']) 
+    return response.json(animal)       
   },
   async count(request, response) {
     const { animal_id } = request.params
@@ -63,4 +64,15 @@ module.exports = {
      
 
   },
+  async delete(request, response){
+    const { id } = request.params
+      connection('reports')
+        .where('reports_id', '=', id)
+        .delete()
+        .then(async () => {
+          return response.status(200).send('ok')           
+        }).catch(() =>{
+          return response.status(500).send({error: 'Erro inesperado'})
+        })
+  }
 }
