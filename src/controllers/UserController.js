@@ -26,13 +26,11 @@ module.exports = {
         admin: admin
       })
       .then(async (id_user) =>{  
-
         const user = await connection('user')
         .where({
-          id: id_user[0],
+          id_user: id_user[0],
         })
         .select()
-
         const token = jwt.sign({
           email: user[0].email,
           id_user: user[0].id_user,
@@ -47,10 +45,15 @@ module.exports = {
           token: token
         })
           })
-      .catch((e) => {    
-        if(e.sqlMessage){
-          return response.status(400).send({ error: 'Usuario já existe' })
+      .catch((e) => {   
+        if(e.sqlMessage.includes('Duplicate entry')){
+          if(e.sqlMessage.includes('user.telefone')){
+            return response.status(400).send({ error: 'Telefone já cadastrado' })
+          }else{
+            return response.status(400).send({ error: 'Email já cadastrado' })
+          }
         }
+        return response.status(400).send({ error: 'Erro no servidor' })
       })
 
     })         
