@@ -4,9 +4,18 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
 module.exports = {
-  async index(request, response) {
-    const user = await connection('user').select('*')
+  async index(request, response) {    
+    const { page = 1 } = request.query
 
+    const [count] = await connection('user').count()
+
+    const user = await connection('user')
+    .limit(5)
+    .offset((page - 1) * 5 )
+    .select('*')
+    .orderBy('id_user');
+
+    response.header('X-Total-Count', count['count(*)'])    
     return response.json(user)
   },
 

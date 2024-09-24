@@ -28,6 +28,7 @@ module.exports = {
         'user.email',
         'user.telefone',
       ])      
+      .orderBy('id');
     response.header('X-Total-Count', count['count(*)'])    
     return response.json(animal)
     
