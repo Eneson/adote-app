@@ -3,7 +3,6 @@ const connection  = require('../database/connection')
 module.exports = {
   async index(request, response) {   
     const { page = 1 } = request.query
-    console.log(request.query)
     const [reports] = await connection('reports').count()
 
     const animal = await connection('reports')

@@ -6,7 +6,6 @@ const jwt = require('jsonwebtoken')
 module.exports = {  
     async login(request,response){
         const { Email, Senha } = request.body
-        console.log(Email, Senha)
         try{      
           const user = await connection('admin')
             .where({
@@ -38,7 +37,6 @@ module.exports = {
                 return response.status(401).json({error: "Falha na autenticação"})
             })
         }catch(e){
-            console.log(e)
            if(e.message.includes('Undefined binding(s) detected')){
              return response.status(400).json({error: "Usuario e senha não encontrados"})
            }else{

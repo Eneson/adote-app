@@ -70,11 +70,11 @@ module.exports = {
 
   },
 
-  async delete(request, response) {    
+  async delete(request, response) {  
     const { telefone } = request.params
     const UserTelefone  = request.headers.authorization
 
-    if(UserTelefone == "Beare Admin"){
+    if(UserTelefone.includes("Admin")){
       await connection('user').where('telefone', request.body.telefone).delete()
         .then(() => {
           return response.status(204).send()
@@ -102,13 +102,9 @@ module.exports = {
       })
     }
 
-    
-
-
   },
   
   async update(request,response){
-    console.log(request.body)
     const { nome, telefone, email, id_user } = request.body
     if(request.body.senha){
       const senha = request.body.senha
@@ -219,7 +215,6 @@ module.exports = {
           return response.status(401).json({error: "Falha na autenticação"})
         })
     }catch(e){
-      console.log(e)
        if(e.message.includes('Undefined binding(s) detected')){
          return response.status(400).json({error: "Usuario e senha não encontrados"})
        }else{
