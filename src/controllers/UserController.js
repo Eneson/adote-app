@@ -105,7 +105,7 @@ module.exports = {
   },
   
   async update(request,response){
-    const { nome, telefone, email, id_user } = request.body
+    const { nome, telefone, email, id_user, admin } = request.body
     if(request.body.senha){
       const senha = request.body.senha
       bcrypt.hash(senha, 10, async (errBcrypt, hash) => {
@@ -149,6 +149,7 @@ module.exports = {
           nome: nome,
           telefone: telefone,
           email: email,
+          admin: admin
         }).where('id_user', id_user)
         .then(async () => {  
           const user = await connection('user')
