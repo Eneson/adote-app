@@ -5,7 +5,6 @@ const UserController = require('./controllers/UserController')
 const AnimalController = require('./controllers/AnimalController')
 const ReportController = require('./controllers/ReportController')
 const SessionController = require('./controllers/SessionController')
-const AdminController = require('./controllers/AdminController')
 const login = require('./middleware/login')
 
 const routes = express.Router()
