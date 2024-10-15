@@ -21,6 +21,7 @@ routes.get('/session', SessionController.index)
 
 routes.post('/user/update', UserController.update)
 
+routes.get('/user/:id', UserController.VerificaUser)
 routes.get('/user', UserController.index)
 
 routes.post('/user', UserController.create)

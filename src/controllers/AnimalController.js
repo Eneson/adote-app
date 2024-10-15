@@ -44,6 +44,7 @@ module.exports = {
       'user.email',
       'user.telefone'
     ])     
+    .where('animal.id_user', '=', id_user)
     .then((data) => {
       if(data.length == 0){
         return response.json([])
@@ -65,7 +66,7 @@ module.exports = {
     const foto_resize = 'resize_'+FotoName.replace(/[\s()]/g, '_')
         
     const create_animal = new Promise(async (resolve, reject) => {
-
+ 
     await Trx_Create_animal('animal').insert({
       Nome,
       Descricao,
@@ -79,7 +80,7 @@ module.exports = {
       Castrado
     }).then(() => {
       sharp('./uploads/'+Foto).resize(441,544).jpeg({quality : 100}).toFile('./uploads/'+foto_resize)
-        .then(async ()=>{            
+        .then(async ()=>{        
               await fsPromises.readFile('./uploads/'+foto_resize)
               .then((fileBuffer) => {
                 imagekit.upload({
@@ -87,9 +88,11 @@ module.exports = {
                   useUniqueFileName: false,
                   fileName : foto_resize,  
                 }).then(async (a) => {
+                  console.log(a)
                   resolve("Adicionado com sucesso!")
                 })
                 .catch((err) => {
+                  console.log(err)
                   reject(err)
                 })
               })
@@ -98,10 +101,13 @@ module.exports = {
               })
         })         
         .catch((err) => {
+          
+          console.log(err)    
           reject(err)
         })
       })        
     .catch((err) => {
+      console.log(err)    
       reject(err)
     })
   })
@@ -111,6 +117,7 @@ module.exports = {
       return response.status(200).send('ok') 
     })
     .catch((err) => {
+      console.log(err)    
       Trx_Create_animal.rollback()
       return response.status(500).send({error: 'Erro inesperado'})
     });
@@ -167,6 +174,7 @@ module.exports = {
     const update_animal = new Promise(async (resolve, reject) => {
       const { id_user, FotoName, id, Nome, Descricao, DataNasc, Sexo, Tipo, Vacina, Vermifugado, Castrado} = request.body
       
+
       if(request.file == undefined){
         await trx('animal').update({
           Nome,
@@ -188,14 +196,19 @@ module.exports = {
         
         const foto_resize = 'resize_'+FotoName.replace(/[\s()]/g, '_');
         
+        console.log(request.body)
+
         const Image_old2 = await trx('animal')
         .select([
           'animal.FotoName'
         ])
-        .first()
         .where('id', id)
+        .first()
+
+        console.log('fffffffffffffffffffffffff')
 
         const startIndex = Image_old2.FotoName.replace(/[\s()]/g, '_'); 
+        console.log('sssssssssssssssssssssssss')
         await connection('animal').update({
           Nome,
           Descricao,
@@ -208,6 +221,7 @@ module.exports = {
           Vermifugado,
           Castrado
         }).where('id', id).then(() => {
+          
           sharp('./uploads/'+filename).resize(441,544).jpeg({quality : 100}).toFile('./uploads/'+foto_resize)
             .then(async ()=>{
                   await fsPromises.readFile('./uploads/'+foto_resize)

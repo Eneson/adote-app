@@ -19,6 +19,19 @@ module.exports = {
     return response.json(user)
   },
 
+  async VerificaUser(request, response) {  
+    const { id } = request.params  
+
+    const user = await connection('user')
+    .where('id_user', id)
+    if(user.length>0){
+      return response.status(200).send()
+    }else{
+      return response.status(400).send()
+
+    }
+  },
+
   async create(request, response) {
     const { nome, telefone, email, senha, admin } = request.body
 
