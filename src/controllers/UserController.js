@@ -193,6 +193,34 @@ module.exports = {
 
     
   },
+  async updateSenha(request,response){
+    console.log(request.body)
+    const { senha, token } = request.body
+      bcrypt.hash(senha, 10, async (errBcrypt, hash) => {
+        if(errBcrypt){return response.status(500).send({error: errBcrypt})}        
+        await connection('user')
+        .update({
+          senhaResetExpires: '',
+          senhaResetToken: '',          
+          senha: hash
+        }).where('senhaResetToken', token)
+        .then(async (id_user) => {  
+          return response.status(200).send({
+            mensagem: "Alterado com sucesso",
+          })
+            })
+        .catch((e) => {    
+          if(e.sqlMessage){
+            return response.status(400).send({ error: 'Erro ao cadastrar nova senha, tente novamente' })
+          }
+        })
+  
+      }) 
+    
+    
+
+    
+  },
 
   async login(request,response){
     const { Email, Senha } = request.body

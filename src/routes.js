@@ -18,6 +18,9 @@ routes.get('/', (req, res) => {
 
 routes.post('/login', UserController.login)
 routes.get('/session', SessionController.index)
+routes.post('/forget_password', SessionController.forget_password)
+routes.post('/verifyToken', SessionController.verifyToken)
+routes.post('/newsenha', UserController.updateSenha)
 
 routes.post('/user/update', UserController.update)
 
