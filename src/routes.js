@@ -34,6 +34,7 @@ routes.delete('/user/:telefone', login, UserController.delete)
 routes.post('/animal', login, multerConfig.upload.single('produto_imagem'), AnimalController.create)
 
 routes.post('/animal/update', login, multerConfig.upload.single('produto_imagem'), AnimalController.update)
+routes.post('/animal/update_adotado/:id', login, AnimalController.update_Adotado)
 
 routes.get('/animal', AnimalController.index)
 

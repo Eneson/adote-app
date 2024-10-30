@@ -167,7 +167,7 @@ module.exports = {
       return response.status(500).send({error: 'Erro inesperado'})
     });
   },
-
+  
   async update(request,response){    
     const trx = await connection.transaction();
 
@@ -196,8 +196,6 @@ module.exports = {
         
         const foto_resize = 'resize_'+FotoName.replace(/[\s()]/g, '_');
         
-        console.log(request.body)
-
         const Image_old2 = await trx('animal')
         .select([
           'animal.FotoName'
@@ -205,10 +203,7 @@ module.exports = {
         .where('id', id)
         .first()
 
-        console.log('fffffffffffffffffffffffff')
-
         const startIndex = Image_old2.FotoName.replace(/[\s()]/g, '_'); 
-        console.log('sssssssssssssssssssssssss')
         await connection('animal').update({
           Nome,
           Descricao,
@@ -264,6 +259,23 @@ module.exports = {
       trx.rollback()
       return response.status(500).send({error: 'Erro inesperado'})
     });
+
+  },
+  async update_Adotado(request,response){    
+    console.log('ssssssssssssssssss')
+    const { id } = request.params 
+    const { Adotado } = request.body
+    console.log(id)
+    console.log(Adotado)
+    await connection('animal').update({
+      Adotado: Adotado
+    }).where('id', id).then(() => {
+      return response.status(200).send('ok') 
+    }).catch((err) => {
+      return response.status(500).send({error: 'Erro inesperado'})
+    })  
+      
+
 
   },
 }
