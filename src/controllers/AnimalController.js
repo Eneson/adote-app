@@ -20,6 +20,7 @@ module.exports = {
     
     const animal = await connection('animal')
       .join('user', 'user.id_user', '=', 'animal.id_user')
+      .orderBy('id')
       .limit(10)
       .offset((page - 1) * 10 )
       .select([
@@ -28,7 +29,6 @@ module.exports = {
         'user.email',
         'user.telefone',
       ])      
-      .orderBy('id');
     response.header('X-Total-Count', count['count(*)'])    
     return response.json(animal)
     
