@@ -77,6 +77,7 @@ module.exports = {
       Vacina,
       id_user,
       Vermifugado,
+      'Adotado': 0,
       Castrado
     }).then(() => {
       sharp('./uploads/'+Foto).resize(441,544).jpeg({quality : 100}).toFile('./uploads/'+foto_resize)
