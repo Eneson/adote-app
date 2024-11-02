@@ -14,21 +14,26 @@ var imagekit = new ImageKit({
 
 module.exports = {
   async index(request, response) {    
-    const { page = 1 } = request.query
+    const { page = 1, origem, adotado  } = request.query
+    let limit = origem === 'web' ? 6 : 10;
 
-    const [count] = await connection('animal').count()
+    console.log(origem)
+
+    const [count] = await connection('animal').where('adotado', adotado).count()
     
     const animal = await connection('animal')
+      .where('adotado', adotado) // Aplica o filtro `adotado` na seleção principal
       .join('user', 'user.id_user', '=', 'animal.id_user')
       .orderBy('id')
-      .limit(10)
-      .offset((page - 1) * 10 )
+      .limit(limit)
+      .offset((page - 1) * limit )
       .select([
         'animal.*',
         'user.nome',
         'user.email',
         'user.telefone',
-      ])      
+      ])     
+
     response.header('X-Total-Count', count['count(*)'])    
     return response.json(animal)
     
@@ -174,7 +179,7 @@ module.exports = {
 
     const update_animal = new Promise(async (resolve, reject) => {
       const { id_user, FotoName, id, Nome, Descricao, DataNasc, Sexo, Tipo, Vacina, Vermifugado, Castrado} = request.body
-      
+      const Adotado = request.body.Adotado?request.body.Adotado:0
 
       if(request.file == undefined){
         await trx('animal').update({
@@ -186,7 +191,8 @@ module.exports = {
           Vacina,
           id_user,
           Vermifugado,
-          Castrado
+          Castrado,
+          Adotado
         }).where('id', id).then(() => {
           resolve("Atualizado com sucesso!")
         }).catch((err) => {
