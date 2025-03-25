@@ -2,11 +2,6 @@ const jwt = require('jsonwebtoken');
 const transport = require('../modules/mailer')
 const connection  = require('../database/connection')
 
-const formData = require('form-data');
-const Mailgun = require('mailgun.js');
-const mailgun = new Mailgun(formData);
-const mg = mailgun.client({username: 'api', key: 'bc2da51e7ff03c538e0d83eeb71a2816-784975b6-51764d14'});
-
 
 module.exports = {
   async index(request, response) {
@@ -14,6 +9,7 @@ module.exports = {
           const token = request.headers.authorization.split(' ')[1];
           const decode = jwt.verify(token, `${process.env.JWT_KEY}`)         
           request.usuario = decode;
+          console.log(decode)
           return response.status(200).send(decode)
       } catch (error) {
           return response.status(401).send({error: error})

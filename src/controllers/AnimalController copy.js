@@ -74,6 +74,7 @@ module.exports = {
           
           // Redimensiona a imagem
           await sharp(`./uploads/${FotoName}`)
+            .withMetadata()
             .resize(441, 544)
             .jpeg({ quality: 100 })
             .toFile(`./uploads/${foto_resize}`);
@@ -121,134 +122,142 @@ module.exports = {
     const { id } = request.params 
     const Trx_delete_animal = await connection.transaction();
 
-    try {
-      await Trx_delete_animal('animal')
+    const delete_animal = new Promise(async (resolve, reject) => {  
+      Trx_delete_animal('animal')
         .select('FotoName')
         .first()
         .where('id', '=', id)
         .then(async (data) => {
-          const FotoName = JSON.parse(data.FotoName) 
+          const { FotoName } = data
           await Trx_delete_animal('animal')
           .where('id', id)
           .delete()
           .then(async () => {
-            await Promise.all(
-              FotoName.map(async (imagem) => {
-                  try {
-                      const result = await imagekit.listFiles({ searchQuery: `name="${imagem}"` });
-                      if (result.length > 0) {
-                          await imagekit.deleteFile(result[0].fileId);
-                          console.log(`Imagem deletada: ${imagem}`);
-                      }
-                  } catch (err) {
-                      console.error(`Erro ao deletar imagem (${imagem}):`, err);
-                  }
-              })
-            );                
+                imagekit.listFiles({
+                  searchQuery : 'name = '+ FotoName
+                }).then((result) => {
+                  imagekit.deleteFile(result[0].fileId).then(() => {
+                    resolve("Deletado com sucesso!")
+                  }).catch((err) => {
+                    reject(new Error(err))
+                  })
+                }).catch((err) => {              
+                  reject(new Error(err))
+                })
+          }).catch(() => {
+            reject(new Error('Não foi possível deletar o animal')) 
+          })          
+          .catch((err) => {     
+            reject(new Error(err))
           })
-        })
-      
+      })
+    })    
+    delete_animal.then(() => {
       Trx_delete_animal.commit()
       return response.status(200).send('ok') 
-    } catch (error) {
+    })
+    .catch((err) => {
       Trx_delete_animal.rollback()
       return response.status(500).send({error: 'Erro inesperado'})
-    }  
-    
+    });
   },
   
-  async update(request, response) {    
-    const { files } = request;
-    const { id_user, id, Nome, Descricao, DataNasc, Sexo, Tipo, Vacina, Vermifugado, Castrado } = request.body;
-    const Trx_Update_animal = await connection.transaction();
+  async update(request,response){    
+    const trx = await connection.transaction();
+    
+    const { files } = request; // Alterado para lidar com múltiplos arquivos
+    
+    
+    const update_animal = new Promise(async (resolve, reject) => {
+      const { id_user, FotoName, id, Nome, Descricao, DataNasc, Sexo, Tipo, Vacina, Vermifugado, Castrado} = request.body
+      const Adotado = request.body.Adotado?request.body.Adotado:0
+
+      if(request.file == undefined){
+        await trx('animal').update({
+          Nome,
+          Descricao,
+          DataNasc,
+          Sexo,
+          Tipo,
+          Vacina,
+          id_user,
+          Vermifugado,
+          Castrado,
+          Adotado
+        }).where('id', id).then(() => {
+          resolve("Atualizado com sucesso!")
+        }).catch((err) => {
+          reject(new Error('Não foi possível atualizar as informações  do animal')) 
+        })  
+      }else{
+        const { filename } = request.file
         
-    try {
-        // Pegando e processando imageUris do req.body
-        let imageUris = request.body.imageUris || "";
-        let imageArray = imageUris.split(',').filter(uri => uri.trim() !== ""); // Remove strings vazias
+        const foto_resize = 'resize_'+FotoName.replace(/[\s()]/g, '_');
+        
+        const Image_old2 = await trx('animal')
+        .select([
+          'animal.FotoName'
+        ])
+        .where('id', id)
+        .first()
 
-        let processedImageArray = imageArray.map(uri => {
-            let filename = uri.split('/').pop();
-            return filename.startsWith("resize_") ? filename : `resize_${filename}`;
-        });
-
-        // Processando e fazendo upload das imagens
-        await Promise.all(
-            files.map(async (file) => {
-                try {
-                    const FotoName = file.filename;
-                    const foto_resize = `resize_${FotoName.replace(/[\s()]/g, '_')}`;
-
-                    // Redimensiona a imagem
-                    await sharp(`./uploads/${FotoName}`)
-                        .resize(441, 544)
-                        .jpeg({ quality: 100 })
-                        .toFile(`./uploads/${foto_resize}`);
-
-                    // Lê o arquivo redimensionado
-                    const fileBuffer = await fsPromises.readFile(`./uploads/${foto_resize}`);
-
-                    // Faz upload para o ImageKit
-                    await imagekit.upload({
-                        file: fileBuffer,
+        const startIndex = Image_old2.FotoName.replace(/[\s()]/g, '_'); 
+        await connection('animal').update({
+          Nome,
+          Descricao,
+          DataNasc,
+          Sexo,
+          'FotoName':foto_resize,
+          Tipo,
+          Vacina,
+          id_user,
+          Vermifugado,
+          Castrado
+        }).where('id', id).then(() => {
+          
+          sharp('./uploads/'+filename).resize(441,544).jpeg({quality : 100}).toFile('./uploads/'+foto_resize)
+            .then(async ()=>{
+                  await fsPromises.readFile('./uploads/'+foto_resize)
+                    .then((fileBuffer) => {                      
+                      imagekit.upload({
+                        file : fileBuffer, 
                         useUniqueFileName: false,
-                        fileName: foto_resize,
-                    });
+                        fileName : foto_resize,  
+                      }).then(async (a) => {                         
+                        //Deletando imagem
+                        imagekit.listFiles({
+                          searchQuery : 'name = "'+startIndex+'"'
+                        }).then((result) => {  
+                            imagekit.deleteFile(result[0].fileId)
+                        }).finally(() => {
+                          //Resolvendo a promise 
+                          resolve("Atualizado com sucesso!")
+                        })
+                      }).catch((err) => {
+                        reject(err)
+                      })
+                    })      
+                    .catch((err) => {
+                      reject(err)
+                    })
+          }).catch((err) => {              
+            reject(err) 
+          })
+        }).catch((err) => {
+          reject(err)
+        })        
+      }
+    })
 
-                } catch (error) {
-                    console.error("Erro ao processar imagem:", error);
-                    throw new Error("Erro ao redimensionar ou enviar uma das imagens.");
-                }
-            })
-        );
+    update_animal.then(() => {
+      trx.commit()
+      return response.status(200).send('ok') 
+    })
+    .catch(() => {
+      trx.rollback()
+      return response.status(500).send({error: 'Erro inesperado'})
+    });
 
-        // Atualiza os dados do animal no banco
-        await Trx_Update_animal('animal')
-            .update({
-                Nome,
-                Descricao,
-                DataNasc,
-                Sexo,
-                FotoName: JSON.stringify(processedImageArray),
-                Tipo,
-                Vacina,
-                id_user,
-                Vermifugado,
-                Adotado: 0,
-                Castrado
-            })
-            .where('id', id);
-
-        // Deletando imagens antigas, se houver
-        let imagensParaApagar = request.body.ImagensParaApagar || [];
-        if (!Array.isArray(imagensParaApagar)) {
-            imagensParaApagar = imagensParaApagar ? [imagensParaApagar] : [];
-        }
-
-        await Promise.all(
-            imagensParaApagar.map(async (imagem) => {
-                try {
-                    const result = await imagekit.listFiles({ searchQuery: `name="${imagem}"` });
-
-                    if (result.length > 0) {
-                        await imagekit.deleteFile(result[0].fileId);
-                        console.log(`Imagem deletada: ${imagem}`);
-                    }
-                } catch (err) {
-                    console.error(`Erro ao deletar imagem (${imagem}):`, err);
-                }
-            })
-        );
-
-        // Commit na transação do banco
-        await Trx_Update_animal.commit(); 
-        return response.status(200).send({ message: 'Atualização realizada com sucesso!' });
-
-    } catch (error) {
-        console.error("Erro geral:", error);
-        await Trx_Update_animal.rollback();
-        return response.status(500).json({ error: 'Erro inesperado ao atualizar o animal.' });
-    }
   },
   async update_Adotado(request,response){    
     const { id } = request.params 

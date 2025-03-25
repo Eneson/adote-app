@@ -20,6 +20,7 @@ app.use(function (request, response, next) {
 app.use(express.json())
 app.use('/uploads', express.static('uploads'));
 app.use(routes)
+app.use(cors());
 app.use(errors())
 
 const server = app.listen(port, () => console.log(`Example app listening on port ${port}!`));
