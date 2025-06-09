@@ -13,7 +13,7 @@ const multerConfig = require('./config/multer');
 
 
 routes.get('/', (req, res) => {
-  return res.json('teste')
+  return res.json('teste 01')
 })
 
 routes.post('/login', UserController.login)
